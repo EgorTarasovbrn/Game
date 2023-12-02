@@ -1,16 +1,71 @@
-# This is a sample Python script.
+import pygame
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+pygame.init()
+
+# размеры окна
+SCREEN_WINDTH = 600
+SCREEN_HEIGHT = 700
+
+# fps
+FPS = 60
+clock = pygame.time.Clock()
+
+# Создание окна
+screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Game')
+
+# Загрузка изображения(просто для примера)
+image_background = pygame.image.load('game_fon.jpg')
+image_person = pygame.image.load('person.png')
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+class Player:
+    def __init__(self):
+        self.image = pygame.transform.scale(image_person, (100, 100))
+        self.coords = [SCREEN_WINDTH // 2 - 50, SCREEN_HEIGHT - 150]
+        self.gravity = 10
+
+    def draw(self):
+        screen.blit(self.image, (self.coords))
+
+    def move(self):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_a]:
+            self.coords[0] -= 10
+        if key[pygame.K_d]:
+            self.coords[0] += 10
+
+        self.check_positions()
+
+    def check_positions(self):
+        x, y = self.coords
+        if x < 0 - self.image.get_width():
+            self.coords[0] = SCREEN_WINDTH
+        elif x > SCREEN_WINDTH:
+            self.coords[0] = -self.image.get_width()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+player = Player()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# Основной игровой цикл
+running = True
+while running:
+
+    # Рисование заднего фона
+    screen.blit(image_background, (0, 0))
+
+    # Рисование спрайтов
+    player.draw()
+
+    # Движение персонажа
+    player.move()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    pygame.display.flip()
+
+    clock.tick(FPS)
+
+pygame.quit()
