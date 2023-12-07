@@ -10,6 +10,8 @@ SCREEN_HEIGHT = 700
 FPS = 60
 clock = pygame.time.Clock()
 
+GRAVITY = 1
+
 # Создание окна
 screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Game')
@@ -20,32 +22,45 @@ image_person = pygame.image.load('person.png')
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, x, y):
         self.image = pygame.transform.scale(image_person, (100, 100))
-        self.coords = [SCREEN_WINDTH // 2 - 50, SCREEN_HEIGHT - 150]
+        self.image_width = self.image.get_width()
+        self.image_height = self.image.get_height()
+        self.coords = [x, y]
         self.gravity = 10
+        self.vel_y = 0
 
     def draw(self):
         screen.blit(self.image, (self.coords))
 
     def move(self):
-        key = pygame.key.get_pressed()
+        dx = 0
+        dy = 0
+
+        key = pygame.key.get_pressed()  # список нажатых кнопок
         if key[pygame.K_a]:
-            self.coords[0] -= 10
+            dx -= 10
         if key[pygame.K_d]:
-            self.coords[0] += 10
+            dx += 10
 
-        self.check_positions()
+        self.vel_y += GRAVITY
+        dy += self.vel_y
 
-    def check_positions(self):
         x, y = self.coords
         if x < 0 - self.image.get_width():
             self.coords[0] = SCREEN_WINDTH
         elif x > SCREEN_WINDTH:
             self.coords[0] = -self.image.get_width()
 
+        if y > SCREEN_HEIGHT - self.image_height:
+            self.dy = 0
+            self.vel_y = -25
 
-player = Player()
+        self.coords[0] += dx
+        self.coords[1] += dy
+
+
+player = Player(SCREEN_WINDTH // 2 - 50, SCREEN_HEIGHT - 150)
 
 # Основной игровой цикл
 running = True
