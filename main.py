@@ -7,6 +7,8 @@ pygame.init()
 SCREEN_WINDTH = 600
 SCREEN_HEIGHT = 700
 
+snowflakes = []
+
 # высота границы
 SCROLL_TRIGGER = 250
 
@@ -147,10 +149,28 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
     if player.check_end_game(): # если игрок упал, то появляется экран с game over
         end_screen()
         running = False
         pygame.quit()
+
+    if random.randint(1, 10) == 1:
+        size = random.randint(1, 5)
+        x = random.randint(0, SCREEN_WINDTH)
+        y = 0
+        speed = random.randint(1, 5)
+        snowflakes.append([x, y, size, speed])
+
+    # Обновление координат снежинок и удаление тех, что вышли за пределы экрана
+    for flake in snowflakes:
+        flake[1] += flake[3]
+        if flake[1] > SCREEN_HEIGHT:
+            snowflakes.remove(flake)
+
+    # Отрисовка снежинок
+    for flake in snowflakes:
+        pygame.draw.circle(screen, (255, 255, 255), (flake[0], int(flake[1])), flake[2])
 
     pygame.display.flip()
     clock.tick(FPS)
