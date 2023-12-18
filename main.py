@@ -107,7 +107,7 @@ def end_screen():
     pygame.quit()
 
 
-# класс платформы
+# класс платформыв
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, *group):
         super().__init__(*group)
@@ -140,7 +140,7 @@ while running:
         sprite_platforms.add(platform)
 
     screen.fill((210, 210, 210))
-    pygame.draw.line(screen, 'black', (0, SCROLL_TRIGGER), (SCREEN_WINDTH, SCROLL_TRIGGER))
+    pygame.draw.line(screen, '#cfcfcf', (0, SCROLL_TRIGGER), (SCREEN_WINDTH, SCROLL_TRIGGER))
 
     sprite_platforms.update(player.move())
     sprite_player.draw(screen)
