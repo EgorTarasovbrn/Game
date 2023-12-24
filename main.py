@@ -9,6 +9,10 @@ SCREEN_HEIGHT = 700
 
 snowflakes = []
 
+POINT = 0
+
+POLOZHENIYE = 'left'
+
 # высота границы
 SCROLL_TRIGGER = 250
 
@@ -48,15 +52,21 @@ class Player(pygame.sprite.Sprite):
         self.vel_y = 0
 
     def move(self):  # движение игрока
+        global POLOZHENIYE
         dx = 0  # изменение координаты х
         dy = 0  # изменение координаты y
         scroll = 0
-
         key = pygame.key.get_pressed()  # список нажатых кнопок
         if key[pygame.K_a]:  # движение влево
             dx -= 10
+            if POLOZHENIYE == 'left':
+                POLOZHENIYE = 'right'
+                self.image = pygame.transform.flip(self.image, True, False)
         if key[pygame.K_d]:  # движение вправо
             dx += 10
+            if POLOZHENIYE == 'right':
+                POLOZHENIYE = 'left'
+                self.image = pygame.transform.flip(self.image, True, False)
 
         self.vel_y += GRAVITY  # прыжок
         dy += self.vel_y
@@ -111,7 +121,7 @@ def end_screen():
     pygame.quit()
 
 
-# класс платформыв
+# класс платформы
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, *group):
         super().__init__(*group)
@@ -121,10 +131,11 @@ class Platform(pygame.sprite.Sprite):
         self.rect.y = y
 
     def update(self, scroll):
+        global POINT
         self.rect.y += scroll
-
         if self.rect.y > SCREEN_HEIGHT:
             self.kill()
+            POINT += 90
 
 
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
@@ -143,8 +154,9 @@ while running:
         platform = Platform(platform_x, platform_y)
         sprite_platforms.add(platform)
 
+    print(POINT)
+
     screen.blit(theme, (0, 0))
-    pygame.draw.line(screen, '#cfcfcf', (0, SCROLL_TRIGGER), (SCREEN_WINDTH, SCROLL_TRIGGER))
 
     sprite_platforms.update(player.move())
     sprite_player.draw(screen)
