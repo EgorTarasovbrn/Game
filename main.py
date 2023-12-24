@@ -23,6 +23,9 @@ screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
 # название окна
 pygame.display.set_caption('Game')
 
+theme = pygame.image.load('theme.png')
+theme = pygame.transform.scale(theme, (600, 700))
+
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
 
@@ -83,9 +86,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += dy + scroll  # изменение координаты y у игрока(движение)
         return scroll
 
-    def check_end_game(self): # упал ли игрок
+    def check_end_game(self):  # упал ли игрок
         if self.rect.bottom > SCREEN_HEIGHT:
             return True
+
 
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
@@ -139,7 +143,7 @@ while running:
         platform = Platform(platform_x, platform_y)
         sprite_platforms.add(platform)
 
-    screen.fill((210, 210, 210))
+    screen.blit(theme, (0, 0))
     pygame.draw.line(screen, '#cfcfcf', (0, SCROLL_TRIGGER), (SCREEN_WINDTH, SCROLL_TRIGGER))
 
     sprite_platforms.update(player.move())
@@ -150,7 +154,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    if player.check_end_game(): # если игрок упал, то появляется экран с game over
+    if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
         running = False
         pygame.quit()
