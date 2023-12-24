@@ -9,8 +9,10 @@ SCREEN_HEIGHT = 700
 
 snowflakes = []
 
+# подсчет количества очков
 POINT = 0
 
+# сторона куда смотрит персоонаж
 POLOZHENIYE = 'left'
 
 # высота границы
