@@ -5,7 +5,7 @@ pygame.init()
 
 # размеры окна
 SCREEN_WINDTH = 600
-SCREEN_HEIGHT = 700
+SCREEN_HEIGHT = 850
 
 snowflakes = []
 
@@ -30,7 +30,7 @@ screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Game')
 
 theme = pygame.image.load('theme.png')
-theme = pygame.transform.scale(theme, (600, 700))
+theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
@@ -190,6 +190,10 @@ while running:
     for flake in snowflakes:
         pygame.draw.circle(screen, (255, 255, 255), (flake[0], int(flake[1])), flake[2])
 
+    font = pygame.font.Font(None, 80)
+    text = font.render(f"{POINT}", True, (255, 255, 255))
+    text_rect = text.get_rect(center=(300, 100))
+    screen.blit(text, text_rect)
     pygame.display.flip()
     clock.tick(FPS)
 
