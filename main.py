@@ -156,8 +156,6 @@ while running:
         platform = Platform(platform_x, platform_y)
         sprite_platforms.add(platform)
 
-    print(POINT)
-
     screen.blit(theme, (0, 0))
 
     sprite_platforms.update(player.move())
