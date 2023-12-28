@@ -190,8 +190,9 @@ while running:
             running = False
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
-        print("Игра окончена! Персонаж из первой группы коснулся персонажа из второй группы.")
         end_screen()
+        running = False
+        pygame.quit()
 
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
