@@ -1,5 +1,7 @@
 import pygame
 import random
+import time
+timing = time.time()
 
 pygame.init()
 
@@ -35,11 +37,15 @@ theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
 
+image_monster = pygame.image.load('grinch.png')  # монстр
+image_monster = pygame.transform.scale(image_monster, (62, 102))
+
 image_person = pygame.image.load('data\player.png')  # игрок
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
 sprite_player = pygame.sprite.Group()
+sprite_monster = pygame.sprite.Group()
 sprite_platforms = pygame.sprite.Group()  # группа платформ
 
 
@@ -103,6 +109,17 @@ class Player(pygame.sprite.Sprite):
             return True
 
 
+# класс игрока
+class Monster(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_monster
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.vel_y = 0
+
+
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
     running = True
@@ -142,12 +159,17 @@ class Platform(pygame.sprite.Sprite):
 
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
+monster = Monster(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 600)
+sprite_monster.add(monster)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
 sprite_platforms.add(platform)
 
 # Основной игровой цикл
 running = True
 while running:
+    if time.time() - timing > 2.0:
+        timing = time.time()
+        print("2 seconds")
     # создание платформ
     if len(sprite_platforms) < 10:
         platform_width = 110
@@ -160,11 +182,16 @@ while running:
 
     sprite_platforms.update(player.move())
     sprite_player.draw(screen)
+    sprite_monster.draw(screen)
     sprite_platforms.draw(screen)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    if pygame.sprite.spritecollideany(player, sprite_monster):
+        print("Игра окончена! Персонаж из первой группы коснулся персонажа из второй группы.")
+        end_screen()
 
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
