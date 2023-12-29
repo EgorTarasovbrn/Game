@@ -119,6 +119,13 @@ class Monster(pygame.sprite.Sprite):
         self.rect.y = y
         self.vel_y = 0
 
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            POINT += 90
+
 
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
@@ -159,27 +166,26 @@ class Platform(pygame.sprite.Sprite):
 
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
-monster = Monster(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 600)
-sprite_monster.add(monster)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
 sprite_platforms.add(platform)
 
 # Основной игровой цикл
 running = True
 while running:
-    if time.time() - timing > 2.0:
-        timing = time.time()
-        print("2 seconds")
     # создание платформ
     if len(sprite_platforms) < 10:
         platform_width = 110
         platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
         platform_y = platform.rect.y - random.randint(80, 120)
         platform = Platform(platform_x, platform_y)
+        if time.time() - timing > 2.0:
+            timing = time.time()
+            monster = Monster(platform_x + 31, platform_y - 102)
+            sprite_monster.add(monster)
         sprite_platforms.add(platform)
 
     screen.blit(theme, (0, 0))
-
+    sprite_monster.update(player.move())
     sprite_platforms.update(player.move())
     sprite_player.draw(screen)
     sprite_monster.draw(screen)
