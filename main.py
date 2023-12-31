@@ -10,6 +10,9 @@ SCREEN_HEIGHT = 700
 # высота границы
 SCROLL_TRIGGER = 250
 
+CREATE_ICICLE = pygame.USEREVENT
+pygame.time.set_timer(CREATE_ICICLE, 5000)
+
 # fps
 FPS = 60
 clock = pygame.time.Clock()
@@ -30,9 +33,12 @@ image_person = pygame.image.load('data\player.png')  # игрок
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
+image_icicle = pygame.image.load('data/icicle.png')
+
 sprite_player = pygame.sprite.Group()
 sprite_platforms = pygame.sprite.Group()  # группа платформ
 sprite_gift = pygame.sprite.Group()
+sprite_icicle = pygame.sprite.Group()
 
 
 # класс игрока
@@ -86,6 +92,8 @@ class Player(pygame.sprite.Sprite):
 
     def check_end_game(self):  # упал ли игрок
         if self.rect.bottom > SCREEN_HEIGHT:
+            return True
+        if pygame.sprite.spritecollideany(self, sprite_icicle):
             return True
 
 
@@ -170,6 +178,22 @@ class Gift(pygame.sprite.Sprite):
             self.kill()
 
 
+class Icicle(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = image_icicle
+        self.image = pygame.transform.scale(self.image, (self.image.get_width() * 2, self.image.get_height() * 3))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self):
+        self.rect.y += 8
+
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+
+
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100, False, False)
@@ -208,9 +232,15 @@ while running:
     sprite_gift.draw(screen)
     sprite_gift.update(scroll)
 
+    sprite_icicle.draw(screen)
+    sprite_icicle.update()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == CREATE_ICICLE:
+            sprite_icicle.add(
+                Icicle(random.randint(0, SCREEN_WINDTH - image_icicle.get_width()), -image_icicle.get_height() * 2))
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
         running = False
