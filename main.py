@@ -225,7 +225,7 @@ while running:
     if len(sprite_platforms) < 10:
         platform_width = 110
         platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
-        platform_y = platform.rect.y - random.randint(100, 120)
+        platform_y = platform.rect.y - random.randint(80, 120)
 
         move = True if random.randrange(1, 4) == 3 else False
         where_move = 'left' if random.randrange(1, 3) == 1 else 'right'
