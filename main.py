@@ -40,7 +40,10 @@ image_platform = pygame.image.load('data/platform.png')  # платформа
 image_monster = pygame.image.load('grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
 
+image_bullet = pygame.image.load('gift.png')  # пули
+
 image_person = pygame.image.load('data\player.png')  # игрок
+image_bullet = pygame.transform.scale(image_bullet, (50, 50))
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
@@ -112,10 +115,9 @@ class Player(pygame.sprite.Sprite):
 
 # класс пуль
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, color, radius, x, y, speed_x, speed_y):
+    def __init__(self, x, y, speed_x, speed_y):
         super().__init__()
-        self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        pygame.draw.circle(self.image, color, (radius, radius), radius)
+        self.image = image_bullet
         self.rect = self.image.get_rect(center=(x, y))
         self.speed_x = speed_x
         self.speed_y = speed_y
@@ -217,22 +219,21 @@ while running:
             x, y = event.pos
             # Создаем пули, выходящие из текущей позиции игрока
             if x < SCREEN_WINDTH // 3:
-                sprite_bullet.add(Bullet((255, 255, 255),
-                                         5, player.rect.centerx, player.rect.centery, -5, -5))
+                bullet = Bullet(player.rect.centerx, player.rect.centery, -5, -5)
+                sprite_bullet.add(bullet)
             elif x < 2 * SCREEN_WINDTH // 3:
-                sprite_bullet.add(Bullet((255, 255, 255),
-                                         5, player.rect.centerx, player.rect.centery, 0, -5))
+                bullet = Bullet(player.rect.centerx, player.rect.centery, 0, -5)
+                sprite_bullet.add(bullet)
             else:
-                sprite_bullet.add(Bullet((255, 255, 255),
-                                         5, player.rect.centerx, player.rect.centery, 5, -5))
+                bullet = Bullet(player.rect.centerx, player.rect.centery, 5, -5)
+                sprite_bullet.add(bullet)
 
     sprite_bullet.update()
     sprite_bullet.draw(screen)
 
-    if pygame.sprite.spritecollideany(sprite_bullet, sprite_monster):
-        end_screen()
-        running = False
-        pygame.quit()
+    for bullet in sprite_bullet:
+        if pygame.sprite.spritecollideany(bullet, sprite_monster):
+            sprite_monster.remove(monster)
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
         end_screen()
