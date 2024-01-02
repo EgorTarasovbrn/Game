@@ -3,6 +3,8 @@ import random
 
 pygame.init()
 
+pause = False
+
 # размеры окна
 SCREEN_WINDTH = 600
 SCREEN_HEIGHT = 700
@@ -115,6 +117,23 @@ def end_screen():
         pygame.display.flip()
         screen.fill((0, 0, 0))
     pygame.quit()
+
+
+def switch_pause():
+    global pause
+    pause = not pause
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                pause = False
+
+        font = pygame.font.Font(None, 200)
+        text = font.render('Пауза', True, 'green')
+        screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, SCREEN_HEIGHT // 2 - text.get_height() // 2))
+
+        pygame.display.flip()
 
 
 # класс платформы
@@ -241,6 +260,10 @@ while running:
         if event.type == CREATE_ICICLE:
             sprite_icicle.add(
                 Icicle(random.randint(0, SCREEN_WINDTH - image_icicle.get_width()), -image_icicle.get_height() * 2))
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                switch_pause()
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
         running = False
