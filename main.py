@@ -44,8 +44,9 @@ image_person = pygame.image.load('data\player.png')  # игрок
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
-sprite_player = pygame.sprite.Group()
-sprite_monster = pygame.sprite.Group()
+sprite_player = pygame.sprite.Group()  # персонаж
+sprite_bullet = pygame.sprite.Group()  # группа пуль
+sprite_monster = pygame.sprite.Group()  # группа монстров
 sprite_platforms = pygame.sprite.Group()  # группа платформ
 
 
@@ -107,6 +108,23 @@ class Player(pygame.sprite.Sprite):
     def check_end_game(self):  # упал ли игрок
         if self.rect.bottom > SCREEN_HEIGHT:
             return True
+
+
+# класс пуль
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, color, radius, x, y, speed_x, speed_y):
+        super().__init__()
+        self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, color, (radius, radius), radius)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed_x = speed_x
+        self.speed_y = speed_y
+
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+        if self.rect.y < 0 or self.rect.x < 0 or self.rect.x > SCREEN_WINDTH or self.rect.y > SCREEN_HEIGHT:
+            self.kill()
 
 
 # класс игрока
@@ -178,15 +196,16 @@ while running:
         platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
         platform_y = platform.rect.y - random.randint(80, 120)
         platform = Platform(platform_x, platform_y)
-        if time.time() - timing > 2.0:
+        if time.time() - timing > 15.0:
             timing = time.time()
             monster = Monster(platform_x + 31, platform_y - 102)
             sprite_monster.add(monster)
         sprite_platforms.add(platform)
 
+    scroll = player.move()
     screen.blit(theme, (0, 0))
-    sprite_monster.update(player.move())
-    sprite_platforms.update(player.move())
+    sprite_monster.update(scroll)
+    sprite_platforms.update(scroll)
     sprite_player.draw(screen)
     sprite_monster.draw(screen)
     sprite_platforms.draw(screen)
@@ -194,6 +213,26 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x, y = event.pos
+            # Создаем пули, выходящие из текущей позиции игрока
+            if x < SCREEN_WINDTH // 3:
+                sprite_bullet.add(Bullet((255, 255, 255),
+                                         5, player.rect.centerx, player.rect.centery, -5, -5))
+            elif x < 2 * SCREEN_WINDTH // 3:
+                sprite_bullet.add(Bullet((255, 255, 255),
+                                         5, player.rect.centerx, player.rect.centery, 0, -5))
+            else:
+                sprite_bullet.add(Bullet((255, 255, 255),
+                                         5, player.rect.centerx, player.rect.centery, 5, -5))
+
+    sprite_bullet.update()
+    sprite_bullet.draw(screen)
+
+    if pygame.sprite.spritecollideany(sprite_bullet, sprite_monster):
+        end_screen()
+        running = False
+        pygame.quit()
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
         end_screen()
