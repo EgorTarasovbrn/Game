@@ -1,9 +1,20 @@
+import sqlite3
+
 import pygame
 import random
 
 pygame.init()
 
+con = sqlite3.connect('bd.sqlite')
+cur = con.cursor()
+
+HIGH_RECORD = cur.execute('select record from main').fetchone()[0]
 pause = False
+
+# подсчет количества очков
+POINT = 0
+
+GIFT = cur.execute('select gift from main').fetchone()[0]
 
 # размеры окна
 SCREEN_WINDTH = 600
@@ -148,6 +159,7 @@ class Platform(pygame.sprite.Sprite):
         self.where_move = where_move
 
     def update(self, scroll):
+        global POINT
         self.rect.y += scroll
         if self.is_move and self.where_move == 'left':
             self.rect.x -= 3
@@ -160,6 +172,7 @@ class Platform(pygame.sprite.Sprite):
         if self.rect.x > SCREEN_WINDTH:
             self.rect.x = -self.rect.width
         if self.rect.y > SCREEN_HEIGHT:
+            POINT += 90
             self.kill()
 
 
@@ -191,6 +204,10 @@ class Gift(pygame.sprite.Sprite):
             self.rect.x = -self.platform_width  # доработать появление
 
         if pygame.sprite.spritecollideany(self, sprite_player):
+            global GIFT
+            GIFT += 1
+            cur.execute('update main set gift = gift + 1')
+            con.commit()
             self.kill()
 
         if self.rect.y > SCREEN_HEIGHT:
@@ -217,6 +234,8 @@ player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 20
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100, False, False)
 sprite_platforms.add(platform)
+
+gift_image = pygame.transform.scale(pygame.image.load(image_gift[random.randrange(0, len(image_gift))]), (50, 50))
 
 # Основной игровой цикл
 running = True
@@ -266,10 +285,28 @@ while running:
                 switch_pause()
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
+        if int(POINT) > HIGH_RECORD:
+            cur.execute('update main set record = ?', (POINT,))
+            con.commit()
         running = False
         pygame.quit()
+
+    font = pygame.font.Font(None, 80)
+    text = font.render(f"{POINT}", True, (255, 255, 255))
+    screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, 10))
+
+    screen.blit(gift_image, (10, 10))
+
+    font_gift = pygame.font.Font(None, 50)
+    text_gift = font_gift.render(f"{GIFT}", True, 'white')
+    screen.blit(text_gift, (gift_image.get_width() + 20, gift_image.get_height() // 2))
+
+    font_high_record = pygame.font.Font(None, 50)
+    text_high_record = font_high_record.render(f'Рекорд: {HIGH_RECORD}', True, 'white')
+    screen.blit(text_high_record, (10, text_gift.get_height() * 2))
 
     pygame.display.flip()
     clock.tick(FPS)
 
 pygame.quit()
+# print 'Егор чушпан'
