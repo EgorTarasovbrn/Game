@@ -41,12 +41,16 @@ pygame.display.set_caption('Game')
 image_platform = pygame.image.load('data/platform.png')  # платформа
 
 image_gift = ['data/gift_1.png', 'data/gift_2.png', 'data/gift_3.png']
+image_gift_fon = pygame.transform.scale(pygame.image.load(image_gift[random.randrange(0, 3)]), (50, 50))
 
 image_person = pygame.image.load('data\player.png')  # игрок
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
 image_icicle = pygame.image.load('data/icicle.png')
+
+image_start_fon = pygame.image.load('data/start_fon.png')
+image_start_fon = pygame.transform.scale(image_start_fon, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
 sprite_player = pygame.sprite.Group()
 sprite_platforms = pygame.sprite.Group()  # группа платформ
@@ -110,6 +114,32 @@ class Player(pygame.sprite.Sprite):
             return True
 
 
+def start_screen(gift):
+    screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
+    running = True
+    font = pygame.font.Font(None, 50)
+    text_gift = font.render(str(GIFT), True, 'white')
+    text_score = font.render(f'Лучший рекорд: {HIGH_RECORD}', True, 'white')
+    text = font.render('Для начала игры нажмите Space', True, 'White')
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    running = False
+        screen.blit(image_start_fon, (0, 0))
+        screen.blit(gift, (10, 10))
+
+        screen.blit(text_gift, (gift.get_width() + 20, gift.get_height() // 2))
+        screen.blit(text_score, (10, 90))
+        screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, SCREEN_HEIGHT - 200))
+
+        pygame.display.flip()
+        screen.fill((0, 0, 0))
+
+
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
     running = True
@@ -145,6 +175,9 @@ def switch_pause():
         screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, SCREEN_HEIGHT // 2 - text.get_height() // 2))
 
         pygame.display.flip()
+
+
+start_screen(image_gift_fon)
 
 
 # класс платформы
@@ -291,7 +324,7 @@ while running:
         running = False
         pygame.quit()
 
-    font = pygame.font.Font(None, 80)
+    font = pygame.font.Font(None, 60)
     text = font.render(f"{POINT}", True, (255, 255, 255))
     screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, 10))
 
@@ -309,4 +342,3 @@ while running:
     clock.tick(FPS)
 
 pygame.quit()
-# print 'Егор чушпан'
