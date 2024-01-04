@@ -23,7 +23,7 @@ SCREEN_HEIGHT = 700
 # высота границы
 SCROLL_TRIGGER = 250
 
-CREATE_ICICLE = pygame.USEREVENT
+CREATE_ICICLE = pygame.USEREVENT  # событие для создания сосульки
 pygame.time.set_timer(CREATE_ICICLE, 5000)
 
 # fps
