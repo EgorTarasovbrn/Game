@@ -40,10 +40,10 @@ image_platform = pygame.image.load('data/platform.png')  # платформа
 image_monster = pygame.image.load('data/grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
 
-image_bullet = pygame.image.load('data/snowball.png')  # пули
+image_bullet = pygame.image.load('data/gift.png')  # пули
 
 image_person = pygame.image.load('data/player.png')  # игрок
-image_bullet = pygame.transform.scale(image_bullet, (150, 130))
+image_bullet = pygame.transform.scale(image_bullet, (60, 60))
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
@@ -184,6 +184,22 @@ class Platform(pygame.sprite.Sprite):
             POINT += 90
 
 
+class FakePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_platform
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            POINT += 90
+
+
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
@@ -240,6 +256,7 @@ while running:
     for bullet in sprite_bullet:
         if pygame.sprite.spritecollideany(bullet, sprite_monster):
             sprite_monster.remove(monster)
+            sprite_bullet.remove(bullet)
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
         end_screen()
