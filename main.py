@@ -31,19 +31,19 @@ screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
 # название окна
 pygame.display.set_caption('Game')
 
-theme = pygame.image.load('theme.png')
+theme = pygame.image.load('data/theme.png')
 theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
 
-image_monster = pygame.image.load('grinch.png')  # монстр
+image_monster = pygame.image.load('data/grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
 
-image_bullet = pygame.image.load('gift.png')  # пули
+image_bullet = pygame.image.load('data/snowball.png')  # пули
 
-image_person = pygame.image.load('data\player.png')  # игрок
-image_bullet = pygame.transform.scale(image_bullet, (50, 50))
+image_person = pygame.image.load('data/player.png')  # игрок
+image_bullet = pygame.transform.scale(image_bullet, (150, 130))
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
@@ -189,6 +189,9 @@ sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
 sprite_platforms.add(platform)
 
+last_shot_time = time.time()
+cooldown_time = 1.0  # Задержка между выстрелами в секундах
+
 # Основной игровой цикл
 running = True
 while running:
@@ -216,17 +219,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            current_time = time.time()
             x, y = event.pos
-            # Создаем пули, выходящие из текущей позиции игрока
-            if x < SCREEN_WINDTH // 3:
-                bullet = Bullet(player.rect.centerx, player.rect.centery, -5, -5)
-                sprite_bullet.add(bullet)
-            elif x < 2 * SCREEN_WINDTH // 3:
-                bullet = Bullet(player.rect.centerx, player.rect.centery, 0, -5)
-                sprite_bullet.add(bullet)
-            else:
-                bullet = Bullet(player.rect.centerx, player.rect.centery, 5, -5)
-                sprite_bullet.add(bullet)
+            if current_time - last_shot_time > cooldown_time:
+                if x < SCREEN_WINDTH // 3:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, -5, -5)
+                    sprite_bullet.add(bullet)
+                elif x < 2 * SCREEN_WINDTH // 3:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, 0, -5)
+                    sprite_bullet.add(bullet)
+                else:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, 5, -5)
+                    sprite_bullet.add(bullet)
+                # Обновите время последнего выстрела
+                last_shot_time = current_time
 
     sprite_bullet.update()
     sprite_bullet.draw(screen)
