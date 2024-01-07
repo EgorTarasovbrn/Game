@@ -1,6 +1,9 @@
 import pygame
 import random
 import time
+from sound import hit_sound, jump_sound, throw_sound
+
+
 timing = time.time()
 
 pygame.init()
@@ -96,6 +99,7 @@ class Player(pygame.sprite.Sprite):
                 # если игрок находится выше платформы
                 if self.rect.bottom < platform.rect.centery:
                     if self.vel_y > 0:
+                        jump_sound()
                         self.rect.bottom = platform.rect.top
                         dy = 0
                         self.vel_y = -20
@@ -240,6 +244,7 @@ while running:
             current_time = time.time()
             x, y = event.pos
             if current_time - last_shot_time > cooldown_time:
+                throw_sound()
                 if x < SCREEN_WINDTH // 3:
                     bullet = Bullet(player.rect.centerx, player.rect.centery, -5, -5)
                     sprite_bullet.add(bullet)
@@ -257,6 +262,7 @@ while running:
 
     for bullet in sprite_bullet:
         if pygame.sprite.spritecollideany(bullet, sprite_monster):
+            hit_sound()
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
 
