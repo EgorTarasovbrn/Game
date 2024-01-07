@@ -14,3 +14,8 @@ def jump_sound():
 def throw_sound():
     throw = pygame.mixer.Sound('data/throw.mp3')
     throw.play()
+
+
+def fall_sound():
+    fall = pygame.mixer.Sound('data/fall.mp3')
+    fall.play()
