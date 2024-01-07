@@ -40,10 +40,10 @@ image_platform = pygame.image.load('data/platform.png')  # платформа
 image_monster = pygame.image.load('data/grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
 
-image_bullet = pygame.image.load('data/gift.png')  # пули
+image_bullet = ['data/christmasball1.png', 'data/christmasball2.png', 'data/christmasball3.png',
+                'data/christmasball4.png']
 
 image_person = pygame.image.load('data/player.png')  # игрок
-image_bullet = pygame.transform.scale(image_bullet, (60, 60))
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
 
@@ -117,7 +117,9 @@ class Player(pygame.sprite.Sprite):
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, speed_x, speed_y):
         super().__init__()
-        self.image = image_bullet
+        self.image = pygame.transform.scale(pygame.image.load(image_bullet[random.randrange(0,
+                                                                                            len(image_bullet))]),
+                                            (23, 30))
         self.rect = self.image.get_rect(center=(x, y))
         self.speed_x = speed_x
         self.speed_y = speed_y
