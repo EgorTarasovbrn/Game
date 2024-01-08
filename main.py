@@ -14,6 +14,10 @@ pygame.mixer.music.play(-1)
 SCREEN_WINDTH = 600
 SCREEN_HEIGHT = 850
 
+COUNT = 0
+
+JUMP_COUNT = 0
+
 snowflakes = []
 
 # подсчет количества очков
@@ -41,6 +45,7 @@ theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
+image_fake_platform = pygame.image.load('data/platform2.png')  # фэйк платформа
 
 image_monster = pygame.image.load('data/grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
@@ -56,6 +61,7 @@ sprite_player = pygame.sprite.Group()  # персонаж
 sprite_bullet = pygame.sprite.Group()  # группа пуль
 sprite_monster = pygame.sprite.Group()  # группа монстров
 sprite_platforms = pygame.sprite.Group()  # группа платформ
+sprite_fake_platforms = pygame.sprite.Group()  # группа фэйк платформ
 
 
 # класс игрока
@@ -96,6 +102,17 @@ class Player(pygame.sprite.Sprite):
 
         # проверка запрыгнул ли игрок на платформу
         for platform in sprite_platforms:
+            # если при прыжке будет пересечение, то...
+            if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
+                # если игрок находится выше платформы
+                if self.rect.bottom < platform.rect.centery:
+                    if self.vel_y > 0:
+                        jump_sound()
+                        self.rect.bottom = platform.rect.top
+                        dy = 0
+                        self.vel_y = -20
+
+        for platform in sprite_fake_platforms:
             # если при прыжке будет пересечение, то...
             if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
                 # если игрок находится выше платформы
@@ -219,6 +236,22 @@ class Platform(pygame.sprite.Sprite):
             POINT += 90
 
 
+class FakePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_fake_platform
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            POINT += 90
+
+
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
@@ -231,22 +264,33 @@ cooldown_time = 1.0  # Задержка между выстрелами в се�
 running = True
 while running:
     # создание платформ
-    if len(sprite_platforms) < 10:
+    if len(sprite_platforms) < 10 and COUNT != 15:
         platform_width = 110
         platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
         platform_y = platform.rect.y - random.randint(80, 120)
         platform = Platform(platform_x, platform_y)
+        COUNT += 1
         if time.time() - timing > 15.0:
             timing = time.time()
             monster = Monster(platform_x + 31, platform_y - 102)
             sprite_monster.add(monster)
         sprite_platforms.add(platform)
+    elif len(sprite_platforms) < 10 and COUNT == 15:
+        COUNT = 0
+        platform_width = 110
+        platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
+        platform_y = platform.rect.y - random.randint(80, 120)
+        platform = FakePlatform(platform_x, platform_y)
+        sprite_fake_platforms.add(platform)
+
 
     scroll = player.move()
     screen.blit(theme, (0, 0))
     sprite_monster.update(scroll)
     sprite_platforms.update(scroll)
+    sprite_fake_platforms.update(scroll)
     sprite_player.draw(screen)
+    sprite_fake_platforms.draw(screen)
     sprite_monster.draw(screen)
     sprite_platforms.draw(screen)
 
@@ -279,6 +323,13 @@ while running:
             hit_sound()
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
+
+    for jump in sprite_fake_platforms:
+        if pygame.sprite.spritecollideany(jump, sprite_monster):
+            JUMP_COUNT += 1
+
+    if JUMP_COUNT == 2:
+        pass
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
         hit2_sound()
