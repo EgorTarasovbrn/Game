@@ -1,13 +1,8 @@
 import pygame
 import random
 import time
-from sound import hit_sound, jump_sound, throw_sound, fall_soound, hit2_sound, theme_song
+from sound import hit_sound, jump_sound, throw_sound
 
-pygame.mixer.music.load('themesong2.mp3')
-
-pygame.mixer.music.set_volume(0.5)
-
-pygame.mixer.music.play(-1)
 
 timing = time.time()
 
@@ -119,7 +114,6 @@ class Player(pygame.sprite.Sprite):
 
     def check_end_game(self):  # упал ли игрок
         if self.rect.bottom > SCREEN_HEIGHT:
-            fall_soound()
             return True
 
 
@@ -156,7 +150,7 @@ class Monster(pygame.sprite.Sprite):
         self.rect.y += scroll
         if self.rect.y > SCREEN_HEIGHT:
             self.kill()
-            POINT += 50
+            POINT += 90
 
 
 def end_screen():
@@ -196,6 +190,22 @@ class Platform(pygame.sprite.Sprite):
             POINT += 90
 
 
+class FakePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_platform
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            POINT += 90
+
+
 player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 200)
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100)
@@ -207,7 +217,6 @@ cooldown_time = 1.0  # Задержка между выстрелами в се�
 # Основной игровой цикл
 running = True
 while running:
-    theme_song()
     # создание платформ
     if len(sprite_platforms) < 10:
         platform_width = 110
@@ -253,13 +262,11 @@ while running:
 
     for bullet in sprite_bullet:
         if pygame.sprite.spritecollideany(bullet, sprite_monster):
-            POINT += 180
             hit_sound()
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
 
     if pygame.sprite.spritecollideany(player, sprite_monster):
-        hit2_sound()
         end_screen()
         running = False
         pygame.quit()
