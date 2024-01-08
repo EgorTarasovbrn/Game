@@ -7,7 +7,7 @@ timing = time.time()
 pygame.init()
 
 pygame.mixer.music.load("data/themesong2.mp3")
-pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.set_volume(0.37)
 pygame.mixer.music.play(-1)
 
 # размеры окна
@@ -153,7 +153,7 @@ class Monster(pygame.sprite.Sprite):
         self.rect.y += scroll
         if self.rect.y > SCREEN_HEIGHT:
             self.kill()
-            POINT += 90
+            POINT += 45
 
 
 def hit_sound():
@@ -275,6 +275,7 @@ while running:
 
     for bullet in sprite_bullet:
         if pygame.sprite.spritecollideany(bullet, sprite_monster):
+            POINT += 180
             hit_sound()
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
