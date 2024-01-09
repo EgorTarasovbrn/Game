@@ -212,7 +212,7 @@ def pause():
         if keys[pygame.K_RETURN]:
             paused = False
 
-        font = pygame.font.Font(None, 50)
+        font = pygame.font.Font(None, 45)
         text = font.render('Paused. Press enter to continue', True, 'red')
         text_x = SCREEN_WINDTH // 2 - text.get_width() // 2
         text_y = SCREEN_HEIGHT // 2 - text.get_height() // 2
