@@ -201,6 +201,25 @@ def hit2_sound():
     hit2.play()
 
 
+def pause():
+    paused = True
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RETURN]:
+            paused = False
+
+        font = pygame.font.Font(None, 50)
+        text = font.render('Paused. Press enter to continue', True, 'red')
+        text_x = SCREEN_WINDTH // 2 - text.get_width() // 2
+        text_y = SCREEN_HEIGHT // 2 - text.get_height() // 2
+        screen.blit(text, (text_x, text_y))
+        pygame.display.flip()
+
+
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
     running = True
@@ -287,7 +306,6 @@ while running:
         platform = FakePlatform(platform_x, platform_y)
         sprite_fake_platforms.add(platform)
 
-
     scroll = player.move()
     screen.blit(theme, (0, 0))
     sprite_monster.update(scroll)
@@ -301,7 +319,12 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_ESCAPE]:
+            pause()
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             current_time = time.time()
             x, y = event.pos
             if current_time - last_shot_time > cooldown_time:
