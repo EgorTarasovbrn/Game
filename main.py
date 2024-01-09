@@ -118,6 +118,8 @@ class Player(pygame.sprite.Sprite):
                 # если игрок находится выше платформы
                 if self.rect.bottom < platform.rect.centery:
                     if self.vel_y > 0:
+                        global JUMP_COUNT
+                        JUMP_COUNT += 1
                         jump_sound()
                         self.rect.bottom = platform.rect.top
                         dy = 0
@@ -248,6 +250,8 @@ class FakePlatform(pygame.sprite.Sprite):
         global POINT
         self.rect.y += scroll
         if self.rect.y > SCREEN_HEIGHT:
+            global JUMP_COUNT
+            JUMP_COUNT = 0
             self.kill()
             POINT += 90
 
@@ -324,18 +328,15 @@ while running:
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
 
-    for jump in sprite_fake_platforms:
-        if pygame.sprite.spritecollideany(jump, sprite_monster):
-            JUMP_COUNT += 1
-
-    if JUMP_COUNT == 2:
-        pass
-
     if pygame.sprite.spritecollideany(player, sprite_monster):
         hit2_sound()
         end_screen()
         running = False
         pygame.quit()
+
+    if JUMP_COUNT == 2:
+        JUMP_COUNT = 0
+        sprite_fake_platforms.empty()
 
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
