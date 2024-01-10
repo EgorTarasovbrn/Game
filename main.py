@@ -189,13 +189,16 @@ class Bullet(pygame.sprite.Sprite):
 
 # класс игрока
 class Monster(pygame.sprite.Sprite):
-    def __init__(self, x, y, *group):
+    def __init__(self, x, y, move, where_move, width_platform, *group):
         super().__init__(*group)
         self.image = image_monster
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.vel_y = 0
+        self.where_move = where_move
+        self.is_move = move
+        self.platform_width = width_platform
 
     def update(self, scroll):
         global POINT
@@ -203,6 +206,16 @@ class Monster(pygame.sprite.Sprite):
         if self.rect.y > SCREEN_HEIGHT:
             self.kill()
             POINT += 45
+        if self.is_move and self.where_move == 'left':
+            self.rect.x -= 3
+        if self.is_move and self.where_move == 'right':
+            self.rect.x += 3
+
+        if self.rect.x < -self.platform_width:
+            self.rect.x = SCREEN_WINDTH
+
+        if self.rect.x > SCREEN_WINDTH:
+            self.rect.x = -self.platform_width
 
 
 # класс платформы
@@ -277,7 +290,7 @@ class Gift(pygame.sprite.Sprite):
             self.rect.x = SCREEN_WINDTH
 
         if self.rect.x > SCREEN_WINDTH:
-            self.rect.x = -self.platform_width  # доработать появление
+            self.rect.x = -self.platform_width
 
         if pygame.sprite.spritecollideany(self, sprite_player):
             global GIFT
@@ -451,14 +464,14 @@ while running:
 
         COUNT += 1
 
-        if time.time() - timing > 15.0:
-            timing = time.time()
-            monster = Monster(platform_x + 31, platform_y - 102)
-            sprite_monster.add(monster)
-
         move = True if random.randrange(1, 4) == 3 else False
         where_move = 'left' if random.randrange(1, 3) == 1 else 'right'
         give_gift = True if random.randrange(1, 6) == 1 else False
+
+        if time.time() - timing > 5.0:
+            timing = time.time()
+            monster = Monster(platform_x + 31, platform_y - 102, move, where_move, platform_width)
+            sprite_monster.add(monster)
 
         if give_gift:
             gift = Gift(random.choice(image_gift), platform_x, platform_y, platform_width, move, where_move)
@@ -504,7 +517,6 @@ while running:
     sprite_monster.draw(screen)
 
     sprite_icicle.draw(screen)
-
 
     for bullet in sprite_bullet:
         if pygame.sprite.spritecollideany(bullet, sprite_monster):
