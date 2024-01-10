@@ -1,9 +1,15 @@
 import sqlite3
+import time
 
 import pygame
 import random
 
+timing = time.time()
 pygame.init()
+
+pygame.mixer.music.load("data/themesong2.mp3")
+pygame.mixer.music.set_volume(0.37)
+pygame.mixer.music.play(-1)
 
 con = sqlite3.connect('bd.sqlite')
 cur = con.cursor()
@@ -15,17 +21,18 @@ pause = False
 POINT = 0
 
 GIFT = cur.execute('select gift from main').fetchone()[0]
-
+snowflakes = []
 # размеры окна
 SCREEN_WINDTH = 600
-SCREEN_HEIGHT = 700
-
+SCREEN_HEIGHT = 850
 # высота границы
 SCROLL_TRIGGER = 250
-
+COUNT = 0
 CREATE_ICICLE = pygame.USEREVENT  # событие для создания сосульки
 pygame.time.set_timer(CREATE_ICICLE, 5000)
-
+# сторона куда смотрит персоонаж
+POLOZHENIYE = 'left'
+JUMP_COUNT = 0
 # fps
 FPS = 60
 clock = pygame.time.Clock()
@@ -40,9 +47,16 @@ pygame.display.set_caption('Game')
 # Загрузка изображения
 image_platform = pygame.image.load('data/platform.png')  # платформа
 
+theme = pygame.image.load('data/theme.png')
+theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
+image_fake_platform = pygame.image.load('data/platform2.png')  # фэйк платформа
+image_monster = pygame.image.load('data/grinch.png')  # монстр
+image_monster = pygame.transform.scale(image_monster, (62, 102))
 image_gift = ['data/gift_1.png', 'data/gift_2.png', 'data/gift_3.png']
 image_gift_fon = pygame.transform.scale(pygame.image.load(image_gift[random.randrange(0, 3)]), (50, 50))
 
+image_bullet = ['data/christmasball1.png', 'data/christmasball2.png', 'data/christmasball3.png',
+                'data/christmasball4.png']
 image_person = pygame.image.load('data\player.png')  # игрок
 image_person_width = image_person.get_width()
 image_person_height = image_person.get_height()
@@ -53,9 +67,12 @@ image_start_fon = pygame.image.load('data/start_fon.png')
 image_start_fon = pygame.transform.scale(image_start_fon, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
 sprite_player = pygame.sprite.Group()
+sprite_bullet = pygame.sprite.Group()  # группа пуль
+sprite_monster = pygame.sprite.Group()  # группа монстров
 sprite_platforms = pygame.sprite.Group()  # группа платформ
 sprite_gift = pygame.sprite.Group()
 sprite_icicle = pygame.sprite.Group()
+sprite_fake_platforms = pygame.sprite.Group()  # группа фэйк платформ
 
 
 # класс игрока
@@ -69,6 +86,7 @@ class Player(pygame.sprite.Sprite):
         self.vel_y = 0
 
     def move(self):  # движение игрока
+        global POLOZHENIYE
         dx = 0  # изменение координаты х
         dy = 0  # изменение координаты y
         scroll = 0
@@ -76,8 +94,14 @@ class Player(pygame.sprite.Sprite):
         key = pygame.key.get_pressed()  # список нажатых кнопок
         if key[pygame.K_a]:  # движение влево
             dx -= 10
+            if POLOZHENIYE == 'left':
+                POLOZHENIYE = 'right'
+                self.image = pygame.transform.flip(self.image, True, False)
         if key[pygame.K_d]:  # движение вправо
             dx += 10
+            if POLOZHENIYE == 'right':
+                POLOZHENIYE = 'left'
+                self.image = pygame.transform.flip(self.image, True, False)
 
         self.vel_y += GRAVITY  # прыжок
         dy += self.vel_y
@@ -99,6 +123,19 @@ class Player(pygame.sprite.Sprite):
                         dy = 0
                         self.vel_y = -20
 
+        for platform in sprite_fake_platforms:
+            # если при прыжке будет пересечение, то...
+            if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
+                # если игрок находится выше платформы
+                if self.rect.bottom < platform.rect.centery:
+                    if self.vel_y > 0:
+                        global JUMP_COUNT
+                        JUMP_COUNT += 1
+                        jump_sound()
+                        self.rect.bottom = platform.rect.top
+                        dy = 0
+                        self.vel_y = -20
+
         # проверка коснулся ли игрок скролла или нет
         if self.rect.y <= SCROLL_TRIGGER and self.vel_y < 0:
             scroll = -dy
@@ -109,10 +146,71 @@ class Player(pygame.sprite.Sprite):
 
     def check_end_game(self):  # упал ли игрок
         if self.rect.bottom > SCREEN_HEIGHT:
+            fall_sound()
             return True
         if pygame.sprite.spritecollideany(self, sprite_icicle):
+            fall_sound()
             return True
+# класс пуль
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, speed_x, speed_y):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(image_bullet[random.randrange(0,
+                                                                                            len(image_bullet))]),
+                                            (23, 30))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed_x = speed_x
+        self.speed_y = speed_y
 
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+        if self.rect.y < 0 or self.rect.x < 0 or self.rect.x > SCREEN_WINDTH or self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+
+
+# класс игрока
+class Monster(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_monster
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.vel_y = 0
+
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            POINT += 45
+
+
+def hit_sound():
+    hit = pygame.mixer.Sound('data/hit.mp3')
+    hit.play()
+
+
+def jump_sound():
+    jump = pygame.mixer.Sound('data/jump.mp3')
+    jump.set_volume(0.3)
+    jump.play()
+
+
+def throw_sound():
+    throw = pygame.mixer.Sound('data/throw.mp3')
+    throw.play()
+
+
+def fall_sound():
+    fall = pygame.mixer.Sound('data/fall.mp3')
+    fall.play()
+
+
+def hit2_sound():
+    hit2 = pygame.mixer.Sound('data/hit2.mp3')
+    hit2.play()
 
 def start_screen(gift):
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
@@ -207,7 +305,22 @@ class Platform(pygame.sprite.Sprite):
         if self.rect.y > SCREEN_HEIGHT:
             POINT += 90
             self.kill()
+class FakePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y, *group):
+        super().__init__(*group)
+        self.image = image_fake_platform
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
+    def update(self, scroll):
+        global POINT
+        self.rect.y += scroll
+        if self.rect.y > SCREEN_HEIGHT:
+            global JUMP_COUNT
+            JUMP_COUNT = 0
+            self.kill()
+            POINT += 90
 
 class Gift(pygame.sprite.Sprite):
 
@@ -267,6 +380,8 @@ player = Player(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 20
 sprite_player.add(player)
 platform = Platform(SCREEN_WINDTH // 2 - image_person_width // 2, SCREEN_HEIGHT - 100, False, False)
 sprite_platforms.add(platform)
+last_shot_time = time.time()
+cooldown_time = 1.0  # Задержка между выстрелами в секундах
 
 gift_image = pygame.transform.scale(pygame.image.load(image_gift[random.randrange(0, len(image_gift))]), (50, 50))
 
@@ -274,11 +389,15 @@ gift_image = pygame.transform.scale(pygame.image.load(image_gift[random.randrang
 running = True
 while running:
     # создание платформ
-    if len(sprite_platforms) < 10:
+    if len(sprite_platforms) < 10 and COUNT != 15 :
         platform_width = 110
         platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
         platform_y = platform.rect.y - random.randint(80, 120)
-
+        COUNT += 1
+        if time.time() - timing > 15.0:
+            timing = time.time()
+            monster = Monster(platform_x + 31, platform_y - 102)
+            sprite_monster.add(monster)
         move = True if random.randrange(1, 4) == 3 else False
         where_move = 'left' if random.randrange(1, 3) == 1 else 'right'
 
@@ -289,19 +408,27 @@ while running:
 
         platform = Platform(platform_x, platform_y, move, where_move)
         sprite_platforms.add(platform)
-
-    screen.fill((210, 210, 210))
-    pygame.draw.line(screen, 'black', (0, SCROLL_TRIGGER), (SCREEN_WINDTH, SCROLL_TRIGGER))
+    elif len(sprite_platforms) < 10 and COUNT == 15:
+        COUNT = 0
+        platform_width = 110
+        platform_x = random.randint(0, SCREEN_WINDTH - platform_width)
+        platform_y = platform.rect.y - random.randint(80, 120)
+        platform = FakePlatform(platform_x, platform_y)
+        sprite_fake_platforms.add(platform)
 
     scroll = player.move()
-
+    screen.blit(theme, (0, 0))
+    sprite_monster.update(scroll)
     sprite_platforms.update(scroll)
+    sprite_fake_platforms.update(scroll)
     sprite_platforms.draw(screen)
 
     sprite_player.draw(screen)
 
     sprite_gift.draw(screen)
     sprite_gift.update(scroll)
+    sprite_fake_platforms.draw(screen)
+    sprite_monster.draw(screen)
 
     sprite_icicle.draw(screen)
     sprite_icicle.update()
@@ -309,6 +436,64 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            current_time = time.time()
+            x, y = event.pos
+            if current_time - last_shot_time > cooldown_time:
+                throw_sound()
+                if x < SCREEN_WINDTH // 3:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, -5, -5)
+                    sprite_bullet.add(bullet)
+                elif x < 2 * SCREEN_WINDTH // 3:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, 0, -5)
+                    sprite_bullet.add(bullet)
+                else:
+                    bullet = Bullet(player.rect.centerx, player.rect.centery, 5, -5)
+                    sprite_bullet.add(bullet)
+                # Обновите время последнего выстрела
+                last_shot_time = current_time
+
+    sprite_bullet.update()
+    sprite_bullet.draw(screen)
+
+    for bullet in sprite_bullet:
+        if pygame.sprite.spritecollideany(bullet, sprite_monster):
+            POINT += 180
+            hit_sound()
+            sprite_monster.remove(monster)
+            sprite_bullet.remove(bullet)
+    if pygame.sprite.spritecollideany(player, sprite_monster):
+        hit2_sound()
+        end_screen()
+        running = False
+        pygame.quit()
+    if JUMP_COUNT == 2:
+        JUMP_COUNT = 0
+        sprite_fake_platforms.empty()
+
+    if player.check_end_game():  # если игрок упал, то появляется экран с game over
+        end_screen()
+        running = False
+        pygame.quit()
+
+    if random.randint(1, 10) == 1:
+        size = random.randint(1, 5)
+        x = random.randint(0, SCREEN_WINDTH)
+        y = 0
+        speed = random.randint(1, 5)
+        snowflakes.append([x, y, size, speed])
+    # Обновление координат снежинок и удаление тех, что вышли за пределы экрана
+    for flake in snowflakes:
+        flake[1] += flake[3]
+        if flake[1] > SCREEN_HEIGHT:
+            snowflakes.remove(flake)
+
+    # Отрисовка снежинок
+    for flake in snowflakes:
+        pygame.draw.circle(screen, (255, 255, 255), (flake[0], int(flake[1])), flake[2])
+
+
         if event.type == CREATE_ICICLE:
             sprite_icicle.add(
                 Icicle(random.randint(0, SCREEN_WINDTH - image_icicle.get_width()), -image_icicle.get_height() * 2))
@@ -316,6 +501,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 switch_pause()
+
     if player.check_end_game():  # если игрок упал, то появляется экран с game over
         end_screen()
         if int(POINT) > HIGH_RECORD:
@@ -323,6 +509,7 @@ while running:
             con.commit()
         running = False
         pygame.quit()
+
 
     font = pygame.font.Font(None, 60)
     text = font.render(f"{POINT}", True, (255, 255, 255))
@@ -342,3 +529,6 @@ while running:
     clock.tick(FPS)
 
 pygame.quit()
+
+# гравитация
+# название окна
