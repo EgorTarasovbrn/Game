@@ -54,12 +54,12 @@ screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Game')
 
 # Загрузка изображения
-image_platform = pygame.image.load('data/platform.png')  # платформа
+# image_platform = pygame.image.load('data/platform.png')  # платформа
 
 theme = pygame.image.load('data/theme.png')
 theme = pygame.transform.scale(theme, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
-image_fake_platform = pygame.image.load('data/platform2.png')  # фэйк платформа
+# image_fake_platform = pygame.image.load('data/platform2.png')  # фэйк платформа
 
 image_monster = pygame.image.load('data/grinch.png')  # монстр
 image_monster = pygame.transform.scale(image_monster, (62, 102))
@@ -78,6 +78,9 @@ image_icicle = pygame.image.load('data/icicle.png')
 
 image_start_fon = pygame.image.load('data/start_fon.png')
 image_start_fon = pygame.transform.scale(image_start_fon, (SCREEN_WINDTH, SCREEN_HEIGHT))
+
+image_platform_garland = ['data/platform_1.png','data/platform_2.png','data/platform_3.png','data/platform_4.png','data/platform_5.png']
+image_platform_garland_fake = ['data/platform_1_fake.png','data/platform_2_fake.png','data/platform_3_fake.png','data/platform_4_fake.png','data/platform_5_fake.png']
 
 sprite_player = pygame.sprite.Group()
 sprite_bullet = pygame.sprite.Group()  # группа пуль
@@ -222,16 +225,19 @@ class Monster(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, move, where_move, *group):
         super().__init__(*group)
-        self.image = image_platform
+        self.frame = 0
+        self.image = pygame.image.load(image_platform_garland[self.frame])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.is_move = move
         self.where_move = where_move
 
+
     def update(self, scroll):
         global POINT
         self.rect.y += scroll
+        self.frame += 0.05
         if self.is_move and self.where_move == 'left':
             self.rect.x -= 3
         if self.is_move and self.where_move == 'right':
@@ -246,23 +252,33 @@ class Platform(pygame.sprite.Sprite):
             POINT += 90
             self.kill()
 
+        if self.frame > 4:
+            self.frame = 0
+        self.image = pygame.image.load(image_platform_garland[int(self.frame)])
+
 
 class FakePlatform(pygame.sprite.Sprite):
     def __init__(self, x, y, *group):
         super().__init__(*group)
-        self.image = image_fake_platform
+        self.frame = 0
+        self.image = pygame.image.load(image_platform_garland_fake[self.frame])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
+
     def update(self, scroll):
         global POINT
+        self.frame += 0.05
         self.rect.y += scroll
         if self.rect.y > SCREEN_HEIGHT:
             global JUMP_COUNT
             JUMP_COUNT = 0
             self.kill()
             POINT += 90
+        if self.frame > 4:
+            self.frame = 0
+        self.image = pygame.image.load(image_platform_garland_fake[int(self.frame)])
 
 
 class Gift(pygame.sprite.Sprite):
@@ -468,7 +484,7 @@ while running:
         where_move = 'left' if random.randrange(1, 3) == 1 else 'right'
         give_gift = True if random.randrange(1, 6) == 1 else False
 
-        if time.time() - timing > 5.0:
+        if time.time() - timing > 10.0 and len(sprite_monster) == 0:
             timing = time.time()
             monster = Monster(platform_x + 31, platform_y - 102, move, where_move, platform_width)
             sprite_monster.add(monster)
