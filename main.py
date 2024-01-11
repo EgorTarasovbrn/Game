@@ -79,8 +79,10 @@ image_icicle = pygame.image.load('data/icicle.png')
 image_start_fon = pygame.image.load('data/start_fon.png')
 image_start_fon = pygame.transform.scale(image_start_fon, (SCREEN_WINDTH, SCREEN_HEIGHT))
 
-image_platform_garland = ['data/platform_1.png','data/platform_2.png','data/platform_3.png','data/platform_4.png','data/platform_5.png']
-image_platform_garland_fake = ['data/platform_1_fake.png','data/platform_2_fake.png','data/platform_3_fake.png','data/platform_4_fake.png','data/platform_5_fake.png']
+image_platform_garland = ['data/platform_1.png', 'data/platform_2.png', 'data/platform_3.png', 'data/platform_4.png',
+                          'data/platform_5.png']
+image_platform_garland_fake = ['data/platform_1_fake.png', 'data/platform_2_fake.png', 'data/platform_3_fake.png',
+                               'data/platform_4_fake.png', 'data/platform_5_fake.png']
 
 sprite_player = pygame.sprite.Group()
 sprite_bullet = pygame.sprite.Group()  # группа пуль
@@ -233,7 +235,6 @@ class Platform(pygame.sprite.Sprite):
         self.is_move = move
         self.where_move = where_move
 
-
     def update(self, scroll):
         global POINT
         self.rect.y += scroll
@@ -265,7 +266,6 @@ class FakePlatform(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-
 
     def update(self, scroll):
         global POINT
@@ -313,6 +313,7 @@ class Gift(pygame.sprite.Sprite):
             GIFT += 1
             cur.execute('update main set gift = gift + 1')
             con.commit()
+            take_sound()
             self.kill()
 
         if self.rect.y > SCREEN_HEIGHT:
@@ -338,6 +339,12 @@ class Icicle(pygame.sprite.Sprite):
 def hit_sound():
     hit = pygame.mixer.Sound('data/hit.mp3')
     hit.play()
+
+
+def take_sound():
+    take = pygame.mixer.Sound('data/take.mp3')
+    take.set_volume(0.7)
+    take.play()
 
 
 def jump_sound():
