@@ -586,7 +586,7 @@ while running:
     text = font.render(f"{POINT}", True, (255, 255, 255))
     screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, 10))
 
-    screen.blit(gift_image, (10, 10))
+    screвen.blit(gift_image, (10, 10))
 
     font_gift = pygame.font.Font('data/shrift.ttf', 50)
     text_gift = font_gift.render(f"{GIFT}", True, 'white')
