@@ -15,7 +15,6 @@ con = sqlite3.connect('bd.sqlite')
 cur = con.cursor()
 
 HIGH_RECORD = cur.execute('select record from main').fetchone()[0]
-print(HIGH_RECORD)
 GIFT = cur.execute('select gift from main').fetchone()[0]
 pause = False
 
@@ -495,17 +494,18 @@ while running:
         where_move = 'left' if random.randrange(1, 3) == 1 else 'right'
         give_gift = True if random.randrange(1, 6) == 1 else False
 
-        if time.time() - timing > 10.0 and len(sprite_monster) == 0:
-            timing = time.time()
-            monster = Monster(platform_x + 31, platform_y - 102, move, where_move, platform_width)
-            sprite_monster.add(monster)
-
         if give_gift:
             gift = Gift(random.choice(image_gift), platform_x, platform_y, platform_width, move, where_move)
             sprite_gift.add(gift)
 
         platform = Platform(platform_x, platform_y, move, where_move)
         sprite_platforms.add(platform)
+
+        if time.time() - timing > 10.0 and len(sprite_monster) == 0 and not pygame.sprite.spritecollideany(
+                Monster(platform_x + 31, platform_y - 102, move, where_move, platform_width), sprite_gift):
+            timing = time.time()
+            monster = Monster(platform_x + 31, platform_y - 102, move, where_move, platform_width)
+            sprite_monster.add(monster)
 
     elif len(sprite_platforms) < 10 and COUNT == 15:
         COUNT = 0
