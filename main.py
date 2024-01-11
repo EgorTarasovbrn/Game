@@ -375,7 +375,7 @@ def hit2_sound():
 def start_screen(gift):
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
     running = True
-    font = pygame.font.Font(None, 50)
+    font = pygame.font.Font('data/shrift.ttf', 40)
     text_gift = font.render(str(GIFT), True, 'white')
     text_score = font.render(f'Лучший рекорд: {HIGH_RECORD}', True, 'white')
     text = font.render('Для начала игры нажмите Space', True, 'White')
@@ -401,7 +401,7 @@ def start_screen(gift):
 def end_screen():
     screen = pygame.display.set_mode((SCREEN_WINDTH, SCREEN_HEIGHT))
     running = True
-    font = pygame.font.Font(None, 50)
+    font = pygame.font.Font('data/shrift.ttf', 50)
     text = font.render('Game over', True, 'red')
     text_x = SCREEN_WINDTH // 2 - text.get_width() // 2
     text_y = SCREEN_HEIGHT // 2 - text.get_height() // 2
@@ -428,7 +428,7 @@ def switch_pause():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pause = False
 
-        font = pygame.font.Font(None, 200)
+        font = pygame.font.Font('data/shrift.ttf', 200)
         text = font.render('Пауза', True, 'green')
         screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, SCREEN_HEIGHT // 2 - text.get_height() // 2))
 
@@ -582,17 +582,17 @@ while running:
         running = False
         pygame.quit()
 
-    font = pygame.font.Font(None, 60)
+    font = pygame.font.Font('data/shrift.ttf', 60)
     text = font.render(f"{POINT}", True, (255, 255, 255))
     screen.blit(text, (SCREEN_WINDTH // 2 - text.get_width() // 2, 10))
 
     screen.blit(gift_image, (10, 10))
 
-    font_gift = pygame.font.Font(None, 50)
+    font_gift = pygame.font.Font('data/shrift.ttf', 50)
     text_gift = font_gift.render(f"{GIFT}", True, 'white')
     screen.blit(text_gift, (gift_image.get_width() + 20, gift_image.get_height() // 2))
 
-    font_high_record = pygame.font.Font(None, 50)
+    font_high_record = pygame.font.Font('data/shrift.ttf', 50)
     text_high_record = font_high_record.render(f'Рекорд: {HIGH_RECORD}', True, 'white')
     screen.blit(text_high_record, (10, text_gift.get_height() * 2))
 
