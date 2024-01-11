@@ -15,6 +15,7 @@ con = sqlite3.connect('bd.sqlite')
 cur = con.cursor()
 
 HIGH_RECORD = cur.execute('select record from main').fetchone()[0]
+print(HIGH_RECORD)
 GIFT = cur.execute('select gift from main').fetchone()[0]
 pause = False
 
@@ -171,6 +172,9 @@ class Player(pygame.sprite.Sprite):
             return True
         if pygame.sprite.spritecollideany(self, sprite_icicle):
             fall_sound()
+            return True
+        if pygame.sprite.spritecollideany(self, sprite_monster):
+            hit2_sound()
             return True
 
 
@@ -548,20 +552,9 @@ while running:
             sprite_monster.remove(monster)
             sprite_bullet.remove(bullet)
 
-    if pygame.sprite.spritecollideany(player, sprite_monster):
-        hit2_sound()
-        end_screen()
-        running = False
-        pygame.quit()
-
     if JUMP_COUNT == 2:
         JUMP_COUNT = 0
         sprite_fake_platforms.empty()
-
-    if player.check_end_game():  # если игрок упал, то появляется экран с game over
-        end_screen()
-        running = False
-        pygame.quit()
 
     if random.randint(1, 10) == 1:
         size = random.randint(1, 5)
@@ -584,6 +577,7 @@ while running:
         end_screen()
         if int(POINT) > HIGH_RECORD:
             cur.execute('update main set record = ?', (POINT,))
+            print(f'da {POINT}')
             con.commit()
         running = False
         pygame.quit()
